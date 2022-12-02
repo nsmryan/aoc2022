@@ -1,7 +1,2 @@
-foreach { a b } [read [open input.txt r]] {
-    set index [dict get [list X 0 Y 1 Z 2] $b]
-    incr total1 [expr $index + 1 + 3 * (($index + 2 * [dict get [list A 0 B 1 C 2] $a] + 1) % 3)]
-    set outcome [dict get [list X 0 Y 1 Z 2] $b]
-    incr total2 [expr (([dict get [list A 0 B 1 C 2] $a] + $outcome + 2) % 3) + 1 + 3 * $outcome]
-}
-puts "Part 1: $total1\nPart 2: $total2"
+puts [concat "Part 1:" [::tcl::mathop::+ {*}[lmap {theirs mine} [string trim [read [open input.txt r]]] { expr [dict get [list X 0 Y 1 Z 2] $mine] + 1 + 3 * (([dict get [list X 0 Y 1 Z 2] $mine] + 2 * [dict get [list A 0 B 1 C 2] $theirs] + 1) % 3) }]]]
+puts [concat "Part 2:" [::tcl::mathop::+ {*}[lmap {theirs mine} [string trim [read [open input.txt r]]] { expr (([dict get [list A 0 B 1 C 2] $theirs] + [dict get [list X 0 Y 1 Z 2] $mine] + 2) % 3) + 1 + 3 * [dict get [list X 0 Y 1 Z 2] $mine] }]]]
