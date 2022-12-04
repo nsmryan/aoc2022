@@ -13,7 +13,6 @@ pub fn main() !void {
         }
         const first = @intCast(i64, line[0] - 'A');
         const second = @intCast(i64, line[2] - 'X');
-        std.debug.print("{} {} => {}\n", .{ first, second, @mod(second - first, 3) });
         total1 += @mod(second + 2 * first + 1, 3) * 3 + second + 1;
         total2 += second * 3 + @mod(second + first + 2, 3) + 1;
     }
