@@ -31,6 +31,7 @@ puts $stacks
 incr index 
 incr index 
 
+set originalStacks $stacks
 while { $index < [llength $input] } {
     set line [lindex $input $index]
     if { [llength $line] == 0 } {
@@ -41,6 +42,39 @@ while { $index < [llength $input] } {
     set endIndex [lindex $line 5]
     #puts "startIndex $startIndex"
 
+    #puts $stacks
+    for { set i 0 } { $i < $numMoveItems } { incr i } {
+        set startStack [dict get $stacks $startIndex]
+        set endStack [dict get $stacks $endIndex]
+
+        set endStack [linsert $endStack 0 [lindex $startStack 0]]
+        set startStack [lrange $startStack 1 end]
+        dict set stacks $startIndex $startStack
+        dict set stacks $endIndex $endStack
+    }
+    incr index
+}
+
+proc topStacks { stacks } {
+    set result ""
+    dict for { stackIndex stack } $stacks {
+        if { [llength $stack] > 0 } {
+            set result $result[lindex $stack 0]
+        }
+    }
+}
+puts "Part 1: [topStacks $stacks]"
+
+set stacks $originalStacks
+while { $index < [llength $input] } {
+    set line [lindex $input $index]
+    if { [llength $line] == 0 } {
+        break
+    }
+    set numMoveItems [lindex $line 1]
+    set startIndex [lindex $line 3]
+    set endIndex [lindex $line 5]
+
     set startStack [dict get $stacks $startIndex]
     set endStack [dict get $stacks $endIndex]
 
@@ -49,24 +83,7 @@ while { $index < [llength $input] } {
     set startStack [lrange $startStack $numMoveItems end]
     dict set stacks $startIndex $startStack
     dict set stacks $endIndex $endStack
-
-    #puts $stacks
-    #for { set i 0 } { $i < $numMoveItems } { incr i } {
-    #    set startStack [dict get $stacks $startIndex]
-    #    set endStack [dict get $stacks $endIndex]
-
-    #    set endStack [linsert $endStack 0 [lindex $startStack 0]]
-    #    set startStack [lrange $startStack 1 end]
-    #    dict set stacks $startIndex $startStack
-    #    dict set stacks $endIndex $endStack
-    #}
     incr index
 }
 
-set result ""
-dict for { stackIndex stack } $stacks {
-    if { [llength $stack] > 0 } {
-        set result $result[lindex $stack 0]
-    }
-}
-puts $result
+puts "Part 2: [topStacks $stacks]"
