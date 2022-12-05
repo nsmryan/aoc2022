@@ -3,12 +3,10 @@ set input [split [read [open input.txt r]] "\n"]
 #set input [split [read [open example.txt r]] "\n"]
 
 set numStacks [expr ([string length [lindex $input 0]] + 1) / 4]
-puts "num stacks $numStacks"
 set stacks [list]
 for { set stackIndex 1 } { $stackIndex <= $numStacks } { incr stackIndex } {
     dict set stacks $stackIndex [list]
 }
-puts $stacks
 
 set index 0
 while { [string first "]" [lindex $input $index]] >= 0 } {
@@ -24,35 +22,33 @@ while { [string first "]" [lindex $input $index]] >= 0 } {
     }
     incr index
 }
-puts "starting stacks"
-puts $stacks
 
 # skip unneeded input
 incr index 
 incr index 
 
-set originalStacks $stacks
-while { $index < [llength $input] } {
-    set line [lindex $input $index]
-    if { [llength $line] == 0 } {
-        break
-    }
-    set numMoveItems [lindex $line 1]
-    set startIndex [lindex $line 3]
-    set endIndex [lindex $line 5]
-    #puts "startIndex $startIndex"
+proc part1 { input index stacks } {
+    while { $index < [llength $input] } {
+        set line [lindex $input $index]
+        if { [llength $line] == 0 } {
+            break
+        }
+        set numMoveItems [lindex $line 1]
+        set startIndex [lindex $line 3]
+        set endIndex [lindex $line 5]
 
-    #puts $stacks
-    for { set i 0 } { $i < $numMoveItems } { incr i } {
-        set startStack [dict get $stacks $startIndex]
-        set endStack [dict get $stacks $endIndex]
+        for { set i 0 } { $i < $numMoveItems } { incr i } {
+            set startStack [dict get $stacks $startIndex]
+            set endStack [dict get $stacks $endIndex]
 
-        set endStack [linsert $endStack 0 [lindex $startStack 0]]
-        set startStack [lrange $startStack 1 end]
-        dict set stacks $startIndex $startStack
-        dict set stacks $endIndex $endStack
+            set endStack [linsert $endStack 0 [lindex $startStack 0]]
+            set startStack [lrange $startStack 1 end]
+            dict set stacks $startIndex $startStack
+            dict set stacks $endIndex $endStack
+        }
+        incr index
     }
-    incr index
+    return $stacks
 }
 
 proc topStacks { stacks } {
@@ -62,28 +58,32 @@ proc topStacks { stacks } {
             set result $result[lindex $stack 0]
         }
     }
+    return $result
 }
-puts "Part 1: [topStacks $stacks]"
 
-set stacks $originalStacks
-while { $index < [llength $input] } {
-    set line [lindex $input $index]
-    if { [llength $line] == 0 } {
-        break
+puts "Part 1: [topStacks [part1 $input $index $stacks]]"
+
+proc part2 { input index stacks } {
+    while { $index < [llength $input] } {
+        set line [lindex $input $index]
+        if { [llength $line] == 0 } {
+            break
+        }
+        set numMoveItems [lindex $line 1]
+        set startIndex [lindex $line 3]
+        set endIndex [lindex $line 5]
+
+        set startStack [dict get $stacks $startIndex]
+        set endStack [dict get $stacks $endIndex]
+
+        set moveSection [lrange $startStack 0 [expr $numMoveItems - 1]]
+        set endStack [concat $moveSection $endStack]
+        set startStack [lrange $startStack $numMoveItems end]
+        dict set stacks $startIndex $startStack
+        dict set stacks $endIndex $endStack
+        incr index
     }
-    set numMoveItems [lindex $line 1]
-    set startIndex [lindex $line 3]
-    set endIndex [lindex $line 5]
-
-    set startStack [dict get $stacks $startIndex]
-    set endStack [dict get $stacks $endIndex]
-
-    set moveSection [lrange $startStack 0 [expr $numMoveItems - 1]]
-    set endStack [concat $moveSection $endStack]
-    set startStack [lrange $startStack $numMoveItems end]
-    dict set stacks $startIndex $startStack
-    dict set stacks $endIndex $endStack
-    incr index
+    return $stacks
 }
 
-puts "Part 2: [topStacks $stacks]"
+puts "Part 2: [topStacks [part2 $input $index $stacks]]"
