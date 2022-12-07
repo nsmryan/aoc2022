@@ -58,8 +58,6 @@ foreach dir [array names sizes] {
 puts "Part 1: $total"
 
 set free [expr 70000000 - [dirSize /]]
-puts "used [dirSize /]"
-puts "free $free"
 set total2 70000000
 foreach dir [array names sizes] {
     set totalSize [dirSize $dir]
