@@ -4,40 +4,56 @@ set input [split [read [open input.txt r]] \n]
 
 set x 1
 set cycle 0
-set score 0
-set mod 20
 foreach line $input {
     if { $line == "" } {
-        puts done
         break
     }
 
     if { $line == "noop" } {
-        incr cycle
-        if { ($cycle % $mod) == 0 } {
-            puts "$x $cycle [expr $cycle * $x]"
-            incr score [expr $cycle * $x]
-            set mod [expr $mod + 40]
+
+        set xpos [expr $cycle % 40]
+        if { $xpos == 0 && $cycle > 0 } {
+            puts ""
         }
+        #puts "$cycle $x"
+
+        if { abs($x - $xpos) < 2 } {
+            puts -nonewline #
+        } else {
+            puts -nonewline .
+        }
+        incr cycle
     } else {
         set amount [lindex $line 1]
+
+        set xpos [expr $cycle % 40]
+        if { $xpos == 0 && $cycle > 0 } {
+            puts ""
+        }
+        #puts "$cycle $x"
+
+        if { abs($x - $xpos) < 2 } {
+            puts -nonewline #
+        } else {
+            puts -nonewline .
+        }
         incr cycle
 
-        if { ($cycle % $mod) == 0 } {
-            puts "$x $cycle [expr $cycle * $x]"
-            incr score [expr $cycle * $x]
-            set mod [expr $mod + 40]
+
+        set xpos [expr $cycle % 40]
+        if { $xpos == 0 && $cycle > 0 } {
+            puts ""
+        }
+        #puts "$cycle $x"
+
+        if { abs($x - $xpos) < 2 } {
+            puts -nonewline #
+        } else {
+            puts -nonewline .
         }
 
-        incr cycle
-
-        if { ($cycle % $mod) == 0 } {
-            puts "$x $cycle [expr $cycle * $x]"
-            incr score [expr $cycle * $x]
-            set mod [expr $mod + 40]
-        }
         incr x $amount
+        incr cycle
     }
 }
 
-puts $score
