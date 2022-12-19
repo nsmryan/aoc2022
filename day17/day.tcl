@@ -175,13 +175,13 @@ proc solve { numTimes } {
 	set firstSame -1
 
     set aft [encode $highestY]
-    for { set i 0 } { $i < 10000 } { incr i } {
+    for { set i 0 } { ($i < 10000) } { incr i } {
         set before $aft
 
         set shape [getShape $i]
         lassign [step $shape $highestY] x y
-		set yDiff [expr max(0, $y - $highestY)]
-        set highestY [expr max($highestY, $y)]
+		set yDiff [expr (max(0, $y - $highestY))]
+        set highestY [expr (max($highestY, $y))]
         set aft [encode $highestY]
 
 		if { ($before == $aft) } {
