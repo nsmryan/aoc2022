@@ -1,5 +1,5 @@
 set infile input.txt
-set infile example.txt
+#set infile example.txt
 
 proc getJet { } {
     global jetList
@@ -113,11 +113,29 @@ proc printGame { highestY { shapePositions "" } } {
     puts ""
 }
 
-proc step { shape highestY } {
-    global shapeResults
+proc encodeRow { height } {
+    global game
+    set word 0
+    for { set x 0 } { $x < 7 } { incr x } {
+        set word [expr ($word << 1)]
+        if { ([info exists game($x,$height)]) } {
+            set word [expr ($word | 1)]
+        }
+    }
+    return $word
+}
 
+proc encode { height } {
+    set encoded 0
+    for { set y 0 } { $y < 32 } { incr y } {
+        set encoded [expr (($encoded << 8) | [encodeRow [expr $height - $y]])]
+    }
+    return $encoded
+}
+
+proc step { shape highestY } {
     set x 2
-    set y [expr $highestY + [shapeHeight $shape] + 3]
+    set y [expr ($highestY + [shapeHeight $shape] + 3)]
     #puts "starting at $x $y, highestY = $highestY, shape height [shapeHeight $shape]"
     set startingX $x
     set startingY $y
@@ -125,12 +143,12 @@ proc step { shape highestY } {
     #printGame $highestY [$shape $x $y]
     while { 1 } {
         set offset [jetOffset]
-        set newX [expr $x + $offset]
+        set newX [expr ($x + $offset)]
         if { ![collide $shape $newX $y] } {
             set x $newX
         }
 
-        set newY [expr $y - 1]
+        set newY [expr ($y - 1)]
         if { [collide $shape $x $newY] } {
             placeShape $shape $x $y
             break
@@ -152,19 +170,100 @@ proc solve { numTimes } {
     set maxYDiff 0
 
     set highestY -1
-    for { set i 0 } { $i < $numTimes } { incr i } {
+    set newDiffCount 0
+    set oldDiffCount 0
+	set firstSame -1
+
+    set aft [encode $highestY]
+    for { set i 0 } { $i < 10000 } { incr i } {
+        set before $aft
+
         set shape [getShape $i]
         lassign [step $shape $highestY] x y
+		set yDiff [expr max(0, $y - $highestY)]
         set highestY [expr max($highestY, $y)]
-        if { $i % 10000 == 0 } {
-            puts "$i max Y diff $maxYDiff"
+        set aft [encode $highestY]
+
+		if { ($before == $aft) } {
+			puts "didn't change?"
+			exit
+		}
+
+        if { ([info exists cache($before)] && $cache($before) != $aft) } {
+            puts "different result!"
+            exit
+        }
+
+		#if { $before == $firstSame } {
+		#	puts "same before: $shape"
+		#	printGame $highestY
+		#}
+
+        if { $firstSame == -1 && [info exists cache($before)] } {
+			set firstSame $before
+			#break
+		}
+ 
+        if { [info exists shapes($before)] && $shapes($before) != $shape } {
+            puts "was $shapes($before), now $shape"
+            exit
+        }
+
+        if { $i > 64 } {
+            set shapes($before) $shape
+            set cache($before) $aft
+            set yDiffs($before) $yDiff
         }
     }
-    #printGame $highestY
+	puts "cut off $i"
+
+    set word $aft
+	set startWord $aft
+	set startI $i
+	set yOffset 0
+	set lastShape [getShape $i]
+    for { set i $i } { $i < $numTimes } { incr i } {
+		set shape [getShape $i]
+        if { $shape != $shapes($word) } {
+            puts "expected $shapes($word) got $shape"
+            exit
+        }
+
+		incr highestY $yDiffs($word)
+		incr yOffset $yDiffs($word)
+        set word $cache($word)
+        
+        if { $i % 1000000 == 0 } {
+            puts "i = $i"
+        }
+
+        puts "shape $shape"
+		if { $word == $startWord } {
+            incr i
+            #set shape [getShape $i]
+            #incr highestY $yDiffs($word)
+            #incr yOffset $yDiffs($word)
+			puts "shape $shape, last shape $lastShape"
+			puts "repeated at $i, y diff $yOffset, cycles [expr $i - $startI]"
+			break
+		}
+    }
+
+    set repeatTime [expr $i - $startI]
+	puts "repeats every $repeatTime"
+	set repeatTimes [expr (($numTimes - $i) / $repeatTime)]
+	incr highestY [expr $yOffset * $repeatTimes]
+	incr i [expr ($repeatTimes * $repeatTime)]
+
+    for { set i $i } { $i < $numTimes } { incr i } {
+		incr highestY $yDiffs($word)
+        set word $cache($word)
+    }
+
     return [expr $highestY + 1]
 }
 
 parseInput $infile
-puts "Part 1: [solve 2022]"
-#puts "Part 2: [solve 1000000000000]"
+#puts "Part 1: [solve 2022]"
+puts "Part 2: [solve 1000000000000]"
 
